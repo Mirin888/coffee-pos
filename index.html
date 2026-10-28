@@ -8,6 +8,7 @@
 <meta name="apple-mobile-web-app-title" content="หน้าร้าน">
 <meta name="theme-color" content="#FFF3F6">
 <title>ระบบขายหน้าร้าน</title>
+<script>try{var t=localStorage.getItem("cpos_theme");if(t==="dark"||t==="light")document.documentElement.setAttribute("data-theme",t)}catch(e){}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=Mali:wght@500;600&display=swap" rel="stylesheet">
@@ -18,8 +19,10 @@
   --hh:58px;color-scheme:light dark;
 }
 @media (prefers-color-scheme:dark){
-  :root{--bg:#1E1418;--sf:#2A1C22;--ink:#FCE9EF;--mu:#C7A3B0;--ln:#463039;--ac:#F28DB4;--aci:#3A0D20;--soft:#3C2430;--bad:#FF9A8C;--badsoft:#4A2220}
+  :root:not([data-theme=light]){--bg:#1E1418;--sf:#2A1C22;--ink:#FCE9EF;--mu:#C7A3B0;--ln:#463039;--ac:#F28DB4;--aci:#3A0D20;--soft:#3C2430;--bad:#FF9A8C;--badsoft:#4A2220}
 }
+:root[data-theme=dark]{--bg:#1E1418;--sf:#2A1C22;--ink:#FCE9EF;--mu:#C7A3B0;--ln:#463039;--ac:#F28DB4;--aci:#3A0D20;--soft:#3C2430;--bad:#FF9A8C;--badsoft:#4A2220;color-scheme:dark}
+:root[data-theme=light]{color-scheme:light}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;margin:0}
 body{font-family:'IBM Plex Sans Thai',system-ui,-apple-system,'Sukhumvit Set',sans-serif;background:var(--bg);color:var(--ink);font-size:16px;line-height:1.45;font-variant-numeric:tabular-nums;overscroll-behavior:none}
@@ -219,7 +222,7 @@ label.btn{cursor:pointer}
 </style>
 </head>
 <body>
-<div id="app"><div style="padding:40px 20px;text-align:center;font-family:system-ui,sans-serif">กำลังเปิดระบบ... (เวอร์ชัน 5)</div></div>
+<div id="app"><div style="padding:40px 20px;text-align:center;font-family:system-ui,sans-serif">กำลังเปิดระบบ... (เวอร์ชัน 6)</div></div>
 <script>
 (function(){
   function show(m){
@@ -371,6 +374,11 @@ function audioCtx(){
   return AC;
 }
 document.addEventListener('pointerdown',()=>{audioCtx()},{passive:true});
+const getTheme=()=>{try{const t=localStorage.getItem('cpos_theme');return t==='dark'||t==='light'?t:'auto'}catch(e){return 'auto'}};
+function setTheme(v){
+  try{if(v==='auto')localStorage.removeItem('cpos_theme');else localStorage.setItem('cpos_theme',v)}catch(e){}
+  if(v==='auto')document.documentElement.removeAttribute('data-theme');else document.documentElement.setAttribute('data-theme',v);
+}
 const soundOn=()=>{try{return localStorage.getItem('cpos_sound')!=='off'}catch(e){return true}};
 function tone(freq,t0,dur,type,vol){
   const ac=audioCtx();if(!ac)return;
@@ -1099,6 +1107,8 @@ function drawOpt(el){
   <section class="card"><h3>ร้านและการขาย</h3>
    <div class="fld"><label>ชื่อร้าน</label><input value="${esc(c.shopName)}" data-ch="shop"></div>
    <div class="fld"><label>ราคาช็อตกาแฟเพิ่ม (บาท)</label><input type="number" inputmode="numeric" value="${c.shotPrice}" data-ch="shotp"></div>
+   <div class="fld"><label>ธีมหน้าจอ (ตั้งค่านี้ใช้เฉพาะเครื่องนี้)</label>
+    <div class="seg" style="justify-self:start">${[['auto','ตามเครื่อง'],['light','สว่าง'],['dark','มืด']].map(([k,l])=>`<button class="${getTheme()===k?'on':''}" data-act="theme" data-v="${k}">${l}</button>`).join('')}</div></div>
    <label class="chk"><input type="checkbox" ${c.showImg!==false?'checked':''} data-ch="showimg"> แสดงรูปเมนูในหน้าขาย</label>
    <label class="chk"><input type="checkbox" ${soundOn()?'checked':''} data-ch="sound"> เปิดเสียง (ตั้งค่านี้ใช้เฉพาะเครื่องนี้)</label>
    <button class="btn sm" data-act="testSound" style="justify-self:start">ลองฟังเสียง</button>
@@ -1120,6 +1130,7 @@ function drawOpt(el){
 CH.showimg=t=>{S.cfg.showImg=t.checked;saveCfg()};
 CH.sound=t=>{try{localStorage.setItem('cpos_sound',t.checked?'on':'off')}catch(e){}};
 CH.eunit=t=>{S.cfg.cats[Number(t.dataset.i)].unit=t.value;saveCfg()};
+ACT.theme=t=>{setTheme(t.dataset.v);drawMBody()};
 ACT.testSound=()=>{if(!soundOn()){toast('เสียงปิดอยู่');return}audioCtx();sndAdd();setTimeout(sndCash,450)};
 CH.shop=t=>{S.cfg.shopName=t.value.trim()||'ร้านกาแฟ';saveCfg();renderHeader()};
 CH.shotp=t=>{S.cfg.shotPrice=Math.max(0,Number(t.value)||0);saveCfg()};
